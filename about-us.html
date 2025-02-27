@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="BeFirst" content="BeFirst">
+    <title>О нас</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Jost, sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1aff, #800080);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('images/backfon.png') no-repeat center center;
+            background-size: cover;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .hero-container {
+            background: rgba(231, 231, 235, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 350px;
+            padding: 20px;
+            color: black;
+            text-align: center;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #ff5733;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: #c70039;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="back-button" onclick="goBack()">⬅ Назад</button>
+
+    <div class="hero-container">
+        <h1>О нас</h1>
+        <p>Это официальный сайт Первичного Отделения Российского Движения Детей и Молодёжи г.Кстово школы №5 .</p>
+        <h2>Ссылки</h2>
+        <p>
+            <a href="https://vk.com/public192461340">МАОУ СШ №5 г.Кстово</a>
+         <p>  
+            <a href="https://vk.com/primarydepartmentmaoush5">Первичное отделение «Движение первых» МАОУ СШ №5</a>
+         </p>
+         <p>
+             <a href="https://vk.com/myperviekst">Движение Первых52 | Кстовский округ</a>
+         </p>
+         <p>
+             <a href="https://vk.com/club227556915">Первые в пятой</a>
+         </p>
+         <p>
+             <a href="https://vk.com/navigator_kst">#НавигаторыДетства52 | Кстовский МО</a>
+         </p>
+         <p>
+             <a href="https://vk.com/mypervie52?from=search">Движение Первых | Нижегородская область</a>
+         </p>
+         <p>
+             <a href="https://vk.com/mypervie?from=search">Движение Первых ✓</a>
+         </p>
+    </div>
+
+    <script>
+        function goBack() {
+            window.location.href = "index.html"; // Возвращаемся на главную страницу
+        }
+    </script>
+
+</body>
+</html>
