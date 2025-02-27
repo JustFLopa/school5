@@ -2,108 +2,130 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="BeFirst" content="BeFirst">
     <title>Новостная лента</title>
     <link rel="stylesheet" href="/css/main.css">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js"></script>
 
     <script>
-        // 🔥 Firebase конфигурация (замени на свои данные!)
+        // 🔥 Firebase конфигурация
         const firebaseConfig = {
             apiKey: "AIzaSyCTyP_LnocMjbmP6f9hsML2fDIZBCoTSdc",
             authDomain: "school5-5624f.firebaseapp.com",
             databaseURL: "https://school5-5624f-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "school5-5624f",
-            storageBucket: "school5-5624f.firebasestorage.app",
+            storageBucket: "school5-5624f.appspot.com",
             messagingSenderId: "437123904178",
-            appId: "1:437123904178:web:1057faef61db3dfb888fab",
-            measurementId: "G-MENG8440P1"
+            appId: "1:437123904178:web:1057faef61db3dfb888fab"
         };
 
         // Инициализация Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        function openModal() {
+            document.getElementById("newsModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("newsModal").style.display = "none";
+        }
+
+        function saveNews(event) {
+            event.preventDefault();
+            const title = document.getElementById('newsTitle').value;
+            const description = document.getElementById('newsDescription').value;
+            const imageFile = document.getElementById('newsImage').files[0];
+
+            if (!title || !description || !imageFile) {
+                alert("Заполните все поля!");
+                return;
+            }
+
+            const storageRef = storage.ref('news/' + imageFile.name);
+            const uploadTask = storageRef.put(imageFile);
+
+            uploadTask.on('state_changed', 
+                (snapshot) => {}, 
+                (error) => { console.error("Ошибка загрузки изображения: ", error); },
+                () => {
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        db.collection("news").add({
+                            title: title,
+                            description: description,
+                            image: downloadURL,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(() => {
+                            closeModal();
+                            document.getElementById('newsForm').reset();
+                            displayNews();
+                        }).catch(error => console.error("Ошибка сохранения новости: ", error));
+                    });
+                }
+            );
+        }
+
+        function deleteNews(newsId) {
+            db.collection("news").doc(newsId).delete().then(displayNews)
+            .catch(error => console.error("Ошибка удаления: ", error));
+        }
+
+        function displayNews() {
+            const newsContainer = document.getElementById('newsContainer');
+            newsContainer.innerHTML = '';
+            db.collection("news").orderBy("timestamp", "desc").get().then(snapshot => {
+                snapshot.forEach(doc => {
+                    const news = doc.data();
+                    newsContainer.innerHTML += `
+                        <div class="news-item">
+                            <h3>${news.title}</h3>
+                            <p>${news.description}</p>
+                            <img src="${news.image}" alt="Изображение">
+                            <button class="delete-button" onclick="deleteNews('${doc.id}')">✖</button>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        window.onload = displayNews;
     </script>
 
     <style>
         body {
             margin: 0;
             font-family: Jost, sans-serif;
-            height: 100vh;
             background: linear-gradient(135deg, #1a1aff, #800080);
-            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('images/backfon.png') no-repeat center center;
-            background-size: cover;
-            opacity: 0.3;
-            z-index: -1;
+            height: 100vh;
         }
 
         .hero-container {
             background: rgba(231, 231, 235, 0.9);
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 350px;
             padding: 20px;
-            color: black;
             text-align: center;
-        }
-
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            padding: 10px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #ff5733;
-            color: white;
-            transition: 0.3s;
-        }
-
-        .back-button:hover {
-            background-color: #c70039;
         }
 
         .add-news-button {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            padding: 20px;
-            font-size: 30px;
             background-color: #28a745;
             color: white;
             border: none;
             border-radius: 50%;
-            cursor: pointer;
-            transition: 0.3s;
             width: 60px;
             height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .add-news-button:hover {
-            background-color: #218838;
+            font-size: 30px;
+            cursor: pointer;
         }
 
         .modal {
@@ -123,16 +145,8 @@
             padding: 20px;
             border-radius: 10px;
             width: 400px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-        }
-
-        .close {
-            font-size: 24px;
-            color: #999;
-            cursor: pointer;
-            align-self: flex-end;
         }
 
         .modal input, .modal textarea {
@@ -149,17 +163,12 @@
             color: white;
             border: none;
             border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .modal button:hover {
-            background-color: #45a049;
         }
 
         #newsContainer {
-            margin-top: 120px;
+            margin-top: 20px;
             width: 100%;
-            max-width: 350px;
+            max-width: 400px;
             text-align: center;
             max-height: 70vh;
             overflow-y: auto;
@@ -176,7 +185,6 @@
 
         .news-item img {
             width: 100%;
-            height: auto;
             border-radius: 5px;
         }
 
@@ -192,15 +200,9 @@
             height: 30px;
             cursor: pointer;
         }
-
-        .delete-button:hover {
-            background-color: #c70039;
-        }
     </style>
 </head>
 <body>
-    <button class="back-button" onclick="goBack()">⬅ Назад</button>
-
     <div class="hero-container">
         <h1>Новостная лента</h1>
         <p>Здесь будут новости и обновления.</p>
@@ -222,59 +224,5 @@
             </form>
         </div>
     </div>
-
-    <script>
-        function openModal() {
-            document.getElementById("newsModal").style.display = "flex";
-        }
-
-        function closeModal() {
-            document.getElementById("newsModal").style.display = "none";
-        }
-
-        function saveNews(event) {
-            event.preventDefault();
-            const title = document.getElementById('newsTitle').value;
-            const description = document.getElementById('newsDescription').value;
-            const imageFile = document.getElementById('newsImage').files[0];
-
-            if (!title || !description || !imageFile) {
-                alert("Заполните все поля!");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                db.collection("news").add({
-                    title: title,
-                    description: description,
-                    image: e.target.result,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => {
-                    closeModal();
-                    document.getElementById('newsForm').reset();
-                    displayNews();
-                });
-            };
-            reader.readAsDataURL(imageFile);
-        }
-
-        function deleteNews(newsId) {
-            db.collection("news").doc(newsId).delete().then(displayNews);
-        }
-
-        function displayNews() {
-            const newsContainer = document.getElementById('newsContainer');
-            newsContainer.innerHTML = '';
-            db.collection("news").orderBy("timestamp", "desc").get().then(snapshot => {
-                snapshot.forEach(doc => {
-                    const news = doc.data();
-                    newsContainer.innerHTML += `<div class="news-item"><h3>${news.title}</h3><p>${news.description}</p><img src="${news.image}" alt=""><button class="delete-button" onclick="deleteNews('${doc.id}')">✖</button></div>`;
-                });
-            });
-        }
-
-        window.onload = displayNews;
-    </script>
 </body>
 </html>
