@@ -5,28 +5,6 @@
     <meta name="BeFirst" content="BeFirst">
     <title>Новостная лента</title>
     <link rel="stylesheet" href="/css/main.css">
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
-
-    <script>
-        // 🔥 Firebase конфигурация (замени на свои данные!)
-        const firebaseConfig = {
-            apiKey: "AIzaSyCTyP_LnocMjbmP6f9hsML2fDIZBCoTSdc",
-            authDomain: "school5-5624f.firebaseapp.com",
-            projectId: "school5-5624f",
-            storageBucket: "school5-5624f.firebasestorage.app",
-            messagingSenderId: "437123904178",
-            appId: "1:437123904178:web:1057faef61db3dfb888fab",
-            measurementId: "G-MENG8440P1"
-        };
-
-        // Инициализация Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-    </script>
-
     <style>
         body {
             margin: 0;
@@ -82,6 +60,7 @@
             background-color: #c70039;
         }
 
+        /* Кнопка "Добавить новость" (круглая) */
         .add-news-button {
             position: fixed;
             bottom: 20px;
@@ -91,7 +70,7 @@
             background-color: #28a745;
             color: white;
             border: none;
-            border-radius: 50%;
+            border-radius: 50%; /* Делаем кнопку круглой */
             cursor: pointer;
             transition: 0.3s;
             width: 60px;
@@ -105,43 +84,52 @@
             background-color: #218838;
         }
 
+        /* Модальное окно для добавления новости */
         .modal {
-            display: none;
+            display: none; /* Скрыто по умолчанию */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
             justify-content: center;
             align-items: center;
         }
 
+        /* Блок внутри модального окна */
         .modal-content {
-            background-color: white;
+            background-color: white; /* Белый фон для формы */
             padding: 20px;
             border-radius: 10px;
             width: 400px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
+            align-items: flex-start; /* Выравниваем элементы по левой стороне */
         }
 
+        /* Крестик для закрытия модального окна */
         .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
             font-size: 24px;
             color: #999;
             cursor: pointer;
-            align-self: flex-end;
         }
 
+        /* Общие стили для всех элементов формы внутри модального окна */
         .modal input, .modal textarea {
-            width: 100%;
+            width: 100%; /* Растягиваем элементы на всю ширину */
             padding: 10px;
             margin: 10px 0;
-            border: 1px solid #ccc;
+            border: 1px solid #ccc; /* Обводка */
             border-radius: 5px;
+            box-sizing: border-box; /* Включаем внутренние отступы в ширину */
         }
 
+        /* Кнопка отправки формы */
         .modal button {
             padding: 10px;
             background-color: #4CAF50;
@@ -149,19 +137,22 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
         }
 
         .modal button:hover {
             background-color: #45a049;
         }
 
+        /* Контейнер для новостей */
         #newsContainer {
-            margin-top: 120px;
+            margin-top: 120px; /* Добавляем отступ сверху */
             width: 100%;
             max-width: 350px;
             text-align: center;
-            max-height: 70vh;
-            overflow-y: auto;
+            max-height: 70vh; /* Ограничиваем максимальную высоту */
+            overflow-y: auto; /* Добавляем вертикальную прокрутку */
+            padding-right: 10px; /* Чтобы не было отступа при прокрутке */
         }
 
         .news-item {
@@ -179,6 +170,7 @@
             border-radius: 5px;
         }
 
+        /* Кнопка удаления новости */
         .delete-button {
             position: absolute;
             top: 10px;
@@ -189,91 +181,161 @@
             border-radius: 50%;
             width: 30px;
             height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
         }
 
         .delete-button:hover {
             background-color: #c70039;
         }
+
+        /* Кнопка удаления при наведении */
+        .news-item:hover .delete-button {
+            display: flex; /* Показываем кнопку удаления */
+        }
+
     </style>
 </head>
-<body>
-    <button class="back-button" onclick="goBack()">⬅ Назад</button>
+    <body>
+        <button class="back-button" onclick="goBack()">⬅ Назад</button>
 
-    <div class="hero-container">
-        <h1>Новостная лента</h1>
-        <p>Здесь будут новости и обновления.</p>
-    </div>
-
-    <div id="newsContainer"></div>
-
-    <button class="add-news-button" onclick="openModal()">+</button>
-
-    <div class="modal" id="newsModal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Добавить новость</h2>
-            <form id="newsForm" onsubmit="saveNews(event)">
-                <input type="text" id="newsTitle" placeholder="Заголовок новости" required>
-                <textarea id="newsDescription" placeholder="Описание новости" rows="4" required></textarea>
-                <input type="file" id="newsImage" accept="image/*" required>
-                <button type="submit">Добавить</button>
-            </form>
+        <div class="hero-container">
+            <h1>Новостная лента</h1>
+            <p>Здесь будут новости и обновления.</p>
         </div>
-    </div>
+
+        <!-- Контейнер для отображения новостей -->
+        <div id="newsContainer"></div>
+
+        <!-- Кнопка для открытия модального окна -->
+        <button class="add-news-button" onclick="openModal()">+</button>
+
+        <!-- Модальное окно для добавления новости -->
+        <div class="modal" id="newsModal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Добавить новость</h2>
+                <form id="newsForm" onsubmit="saveNews(event)">
+                    <input type="text" id="newsTitle" placeholder="Заголовок новости" required>
+                    <textarea id="newsDescription" placeholder="Описание новости" rows="4" required></textarea>
+                    <input type="file" id="newsImage" accept="image/*" required>
+                    <button type="submit">+</button>
+                </form>
+            </div>
+        </div>
 
     <script>
+        // Функции JavaScript остаются прежними
+    </script>
+</body>
+
+
+    <!-- Контейнер для отображения новостей -->
+    <div id="newsContainer"></div>
+
+    <script>
+        // Функция для открытия модального окна
         function openModal() {
-            document.getElementById("newsModal").style.display = "flex";
+            document.getElementById("newsModal").style.display = "flex"; // Показываем модальное окно
         }
 
+        // Функция для закрытия модального окна
         function closeModal() {
-            document.getElementById("newsModal").style.display = "none";
+            document.getElementById("newsModal").style.display = "none"; // Скрываем модальное окно
         }
 
+        // Функция для сохранения новости в локальное хранилище
         function saveNews(event) {
-            event.preventDefault();
+            event.preventDefault(); // Отменяем стандартное поведение формы (перезагрузку страницы)
+
+            // Получаем данные из формы
             const title = document.getElementById('newsTitle').value;
             const description = document.getElementById('newsDescription').value;
-            const imageFile = document.getElementById('newsImage').files[0];
+            const image = document.getElementById('newsImage').files[0];
 
-            if (!title || !description || !imageFile) {
-                alert("Заполните все поля!");
+            // Проверка, если все поля заполнены
+            if (!title || !description || !image) {
+                alert("Пожалуйста, заполните все поля!");
                 return;
             }
 
+            // Читаем изображение как Data URL (Base64)
             const reader = new FileReader();
             reader.onload = function(e) {
-                db.collection("news").add({
+                const newsItem = {
                     title: title,
                     description: description,
-                    image: e.target.result,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => {
-                    closeModal();
-                    document.getElementById('newsForm').reset();
-                    displayNews();
-                });
+                    image: e.target.result // Сохраняем изображение как строку
+                };
+
+                // Получаем текущие новости из локального хранилища
+                let newsList = JSON.parse(localStorage.getItem('newsList')) || [];
+
+                // Добавляем новую новость в массив
+                newsList.push(newsItem);
+
+                // Сохраняем обновленный список новостей в локальное хранилище
+                localStorage.setItem('newsList', JSON.stringify(newsList));
+
+                // Закрываем модальное окно
+                closeModal();
+
+                // Очистка формы
+                document.getElementById('newsForm').reset();
+
+                // Обновление отображения новостей
+                displayNews();
             };
-            reader.readAsDataURL(imageFile);
+
+            reader.readAsDataURL(image); // Читаем изображение
         }
 
-        function deleteNews(newsId) {
-            db.collection("news").doc(newsId).delete().then(displayNews);
+        // Функция для удаления новости
+        function deleteNews(index) {
+            let newsList = JSON.parse(localStorage.getItem('newsList')) || [];
+            newsList.splice(index, 1); // Удаляем новость по индексу
+            localStorage.setItem('newsList', JSON.stringify(newsList)); // Обновляем список новостей в локальном хранилище
+
+            // Обновляем отображение новостей
+            displayNews();
         }
 
+        // Функция для отображения новостей на странице
         function displayNews() {
+            const newsList = JSON.parse(localStorage.getItem('newsList')) || [];
             const newsContainer = document.getElementById('newsContainer');
+
+            // Очищаем контейнер перед обновлением
             newsContainer.innerHTML = '';
-            db.collection("news").orderBy("timestamp", "desc").get().then(snapshot => {
-                snapshot.forEach(doc => {
-                    const news = doc.data();
-                    newsContainer.innerHTML += `<div class="news-item"><h3>${news.title}</h3><p>${news.description}</p><img src="${news.image}" alt=""><button class="delete-button" onclick="deleteNews('${doc.id}')">✖</button></div>`;
-                });
+
+            // Проходим по всем новостям и добавляем их в контейнер
+            newsList.forEach((news, index) => {
+                const newsElement = document.createElement('div');
+                newsElement.classList.add('news-item');
+
+                newsElement.innerHTML = `
+                    <h3>${news.title}</h3>
+                    <p>${news.description}</p>
+                    <img src="${news.image}" alt="News image">
+                    <button class="delete-button" onclick="deleteNews(${index})">✖</button>
+                `;
+
+                newsContainer.appendChild(newsElement);
             });
         }
+        
+            function goBack() {
+                window.location.href = "index.html"; // Возвращаемся на главную страницу
+            }
+    
 
+        // Загружаем новости при загрузке страницы
         window.onload = displayNews;
     </script>
+
 </body>
 </html>
