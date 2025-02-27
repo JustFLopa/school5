@@ -2,14 +2,202 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="BeFirst" content="BeFirst">
     <title>Новостная лента</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+    <link rel="stylesheet" href="/css/main.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+
+    <script>
+        // 🔥 Firebase конфигурация (замени на свои данные!)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTyP_LnocMjbmP6f9hsML2fDIZBCoTSdc",
+            authDomain: "school5-5624f.firebaseapp.com",
+            projectId: "school5-5624f",
+            storageBucket: "school5-5624f.firebasestorage.app",
+            messagingSenderId: "437123904178",
+            appId: "1:437123904178:web:1057faef61db3dfb888fab",
+            measurementId: "G-MENG8440P1"
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Jost, sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1aff, #800080);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('images/backfon.png') no-repeat center center;
+            background-size: cover;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .hero-container {
+            background: rgba(231, 231, 235, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 350px;
+            padding: 20px;
+            color: black;
+            text-align: center;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #ff5733;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: #c70039;
+        }
+
+        .add-news-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 20px;
+            font-size: 30px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .add-news-button:hover {
+            background-color: #218838;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .close {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            align-self: flex-end;
+        }
+
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .modal button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal button:hover {
+            background-color: #45a049;
+        }
+
+        #newsContainer {
+            margin-top: 120px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .news-item {
+            background: #fff;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .news-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff5733;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        .delete-button:hover {
+            background-color: #c70039;
+        }
+    </style>
 </head>
 <body>
-
     <button class="back-button" onclick="goBack()">⬅ Назад</button>
 
     <div class="hero-container">
@@ -35,20 +223,6 @@
     </div>
 
     <script>
-        // 🔥 Подключение к Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCTyP_LnocMjbmP6f9hsML2fDIZBCoTSdc",
-            authDomain: "school5-5624f.firebaseapp.com",
-            databaseURL: "https://school5-5624f-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "school5-5624f",
-            storageBucket: "school5-5624f.firebasestorage.app",
-            messagingSenderId: "437123904178",
-            appId: "1:437123904178:web:1057faef61db3dfb888fab"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         function openModal() {
             document.getElementById("newsModal").style.display = "flex";
         }
@@ -59,76 +233,47 @@
 
         function saveNews(event) {
             event.preventDefault();
-
             const title = document.getElementById('newsTitle').value;
             const description = document.getElementById('newsDescription').value;
-            const image = document.getElementById('newsImage').files[0];
+            const imageFile = document.getElementById('newsImage').files[0];
 
-            if (!title || !description || !image) {
+            if (!title || !description || !imageFile) {
                 alert("Заполните все поля!");
                 return;
             }
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const newsItem = {
+                db.collection("news").add({
                     title: title,
                     description: description,
                     image: e.target.result,
-                    timestamp: Date.now()
-                };
-
-                db.ref("news").push(newsItem, function(error) {
-                    if (error) {
-                        alert("Ошибка сохранения");
-                    } else {
-                        closeModal();
-                        document.getElementById('newsForm').reset();
-                        displayNews();
-                    }
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    closeModal();
+                    document.getElementById('newsForm').reset();
+                    displayNews();
                 });
             };
-
-            reader.readAsDataURL(image);
+            reader.readAsDataURL(imageFile);
         }
 
         function deleteNews(newsId) {
-            db.ref("news/" + newsId).remove().then(() => {
-                displayNews();
-            }).catch(error => {
-                alert("Ошибка удаления");
-            });
+            db.collection("news").doc(newsId).delete().then(displayNews);
         }
 
         function displayNews() {
             const newsContainer = document.getElementById('newsContainer');
             newsContainer.innerHTML = '';
-
-            db.ref("news").orderByChild("timestamp").on("value", function(snapshot) {
-                newsContainer.innerHTML = '';
-                snapshot.forEach(function(childSnapshot) {
-                    const news = childSnapshot.val();
-                    const newsElement = document.createElement('div');
-                    newsElement.classList.add('news-item');
-
-                    newsElement.innerHTML = `
-                        <h3>${news.title}</h3>
-                        <p>${news.description}</p>
-                        <img src="${news.image}" alt="News image">
-                        <button class="delete-button" onclick="deleteNews('${childSnapshot.key}')">✖</button>
-                    `;
-
-                    newsContainer.appendChild(newsElement);
+            db.collection("news").orderBy("timestamp", "desc").get().then(snapshot => {
+                snapshot.forEach(doc => {
+                    const news = doc.data();
+                    newsContainer.innerHTML += `<div class="news-item"><h3>${news.title}</h3><p>${news.description}</p><img src="${news.image}" alt=""><button class="delete-button" onclick="deleteNews('${doc.id}')">✖</button></div>`;
                 });
             });
         }
 
-        function goBack() {
-            window.location.href = "index.html";
-        }
-
         window.onload = displayNews;
     </script>
-
 </body>
 </html>
